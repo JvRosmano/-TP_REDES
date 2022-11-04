@@ -325,57 +325,44 @@ void showDeviceState(char *params)
 
 void showLocalState(char *params)
 {
-    strcpy(mensagem, "entrou show local");
     // Vai obter o local id da mensagem
-    // params = strtok(NULL, " ");
-    // int localId = atoi(params);
-    // if (localId == 1 || localId == 2 || localId == 3 || localId == 4 || localId == 5)
-    // {
-    //     // Checa se o objeto já está instalado
-    //     for (int i = 0; i < NUM_DISPOSITIVOS; i++)
-    //     {
-    //         if (locais[localId - 1].dispositivos[i].instalado == 1)
-    //         {
-    //             snprintf(mensagem, sizeof(mensagem) - 1, "local %d: ", localId);
-    //             if (i == 0)
-    //             {
-    //                 snprintf(mensagem, sizeof(mensagem) - 1, "%d (%d %f) ", i + 1, locais[localId - 1].dispositivos[i].ligado, locais[localId - 1].dispositivos[i].temperatura);
-    //             }
-    //             else if (i == 1)
-    //             {
-    //                 // float param2 = atof(params);
-    //                 // locais[localId - 1].dispositivos[i].ligado = param1;
-    //                 // locais[localId - 1].dispositivos[i].canal = param2;
-    //                 // locais[localId - 1].dispositivos[i].instalado = 1;
-    //             }
-    //             else if (i == 2)
-    //             {
-    //                 // int param2 = atoi(params);
-    //                 // locais[localId - 1].dispositivos[i].ligado = param1;
-    //                 // locais[localId - 1].dispositivos[i].localId = param2;
-    //                 // locais[localId - 1].dispositivos[i].instalado = 1;
-    //             }
-    //             else if (i == 3)
-    //             {
-    //                 // int param2 = atoi(params);
-    //                 // locais[localId - 1].dispositivos[i].aberto = param1;
-    //                 // locais[localId - 1].dispositivos[i].trancado = param2;
-    //                 // locais[localId - 1].dispositivos[i].instalado = 1;
-    //             }
-    //             else if (i == 4)
-    //             {
-    //                 // float param2 = atof(params);
-    //                 // locais[localId - 1].dispositivos[i].ligado = param1;
-    //                 // locais[localId - 1].dispositivos[i].angulo = param2;
-    //                 // locais[localId - 1].dispositivos[i].instalado = 1;
-    //             }
-    //         }
-    //     }
-    // }
-    // else
-    // {
-    //     strcpy(mensagem, "invalid local");
-    // }
+    params = strtok(NULL, " ");
+    int localId = atoi(params);
+    if (localId == 1 || localId == 2 || localId == 3 || localId == 4 || localId == 5)
+    {
+        snprintf(mensagem, 12, "local %d: ", localId);
+        // Checa se o objeto já está instalado
+        for (int i = 0; i < NUM_DISPOSITIVOS; i++)
+        {
+            if (locais[localId - 1].dispositivos[i].instalado == 1)
+            {
+                if (i == 0)
+                {
+                    snprintf(mensagem + strlen(mensagem), 16, "%d (%d %.2f) ", i + 1, locais[localId - 1].dispositivos[i].ligado, locais[localId - 1].dispositivos[i].temperatura);
+                }
+                else if (i == 1)
+                {
+                    snprintf(mensagem + strlen(mensagem), 16, "%d (%d %.2f) ", i + 1, locais[localId - 1].dispositivos[i].ligado, locais[localId - 1].dispositivos[i].canal);
+                }
+                else if (i == 2)
+                {
+                    snprintf(mensagem + strlen(mensagem), 16, "%d (%d %d) ", i + 1, locais[localId - 1].dispositivos[i].ligado, locais[localId - 1].dispositivos[i].localId);
+                }
+                else if (i == 3)
+                {
+                    snprintf(mensagem + strlen(mensagem), 16, "%d (%d %d) ", i + 1, locais[localId - 1].dispositivos[i].aberto, locais[localId - 1].dispositivos[i].trancado);
+                }
+                else if (i == 4)
+                {
+                    snprintf(mensagem + strlen(mensagem), 16, "%d (%d %.2f) ", i + 1, locais[localId - 1].dispositivos[i].ligado, locais[localId - 1].dispositivos[i].angulo);
+                }
+            }
+        }
+    }
+    else
+    {
+        strcpy(mensagem, "invalid local");
+    }
 }
 
 int main(int argc, char **argv)
@@ -430,22 +417,22 @@ int main(int argc, char **argv)
     char addrstr[BUFSIZE];
     addrtostr(addr, addrstr, BUFSIZE);
     printf("bound to %s, waiting connection\n", addrstr);
+    struct sockaddr_storage cstorage;
+    struct sockaddr *caddr = (struct sockaddr *)(&cstorage);
+    socklen_t caddrlen = sizeof(cstorage);
+
+    int cSock = accept(s, caddr, &caddrlen);
+    if (cSock == -1)
+    {
+        checkError("accept");
+    }
+
+    char caddrstr[BUFSIZE];
+    addrtostr(caddr, caddrstr, BUFSIZE);
+    printf("[log] connection from %s\n", caddrstr);
 
     while (1)
     {
-        struct sockaddr_storage cstorage;
-        struct sockaddr *caddr = (struct sockaddr *)(&cstorage);
-        socklen_t caddrlen = sizeof(cstorage);
-
-        int cSock = accept(s, caddr, &caddrlen);
-        if (cSock == -1)
-        {
-            checkError("accept");
-        }
-
-        char caddrstr[BUFSIZE];
-        addrtostr(caddr, caddrstr, BUFSIZE);
-        printf("[log] connection from %s\n", caddrstr);
 
         char buf[BUFSIZE];
         memset(buf, 0, BUFSIZE);
@@ -472,7 +459,7 @@ int main(int argc, char **argv)
                 params = strtok(NULL, " ");
                 if (strstr(params, "in"))
                 {
-                    // showLocalState(params);
+                    showLocalState(params);
                 }
                 else
                 {
@@ -480,16 +467,13 @@ int main(int argc, char **argv)
                 }
             }
         }
-        printf("aopa\n");
-        // sprintf(buf, "remote endpoint: %.1000s\n", caddrstr);
         sprintf(buf, "%s", mensagem);
         count = send(cSock, buf, strlen(buf) + 1, 0);
         if (count != strlen(buf) + 1)
         {
             checkError("send");
         }
-        close(cSock);
     }
-
+    close(cSock);
     exit(EXIT_SUCCESS);
 }

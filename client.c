@@ -49,12 +49,10 @@ int main(int argc, char **argv)
     addrtostr(addr, addrstr, BUFSIZE);
 
     printf("connected to %s\n", addrstr);
-    // Buffer para armazenar o dado
-    char bufMsg[BUFSIZE];
-    unsigned dataReceived = 0;
     while (1)
     {
-
+        // Buffer para armazenar o dado
+        char bufMsg[BUFSIZE];
         memset(bufMsg, 0, BUFSIZE);
         printf("<mensagem> ");
         fgets(bufMsg, BUFSIZE - 1, stdin);
@@ -68,15 +66,14 @@ int main(int argc, char **argv)
         {
             checkError("A mensagem tem tamanho máximo de 500 bytes");
         }
+
         memset(bufMsg, 0, BUFSIZE);
         // Receber os dados
         count = recv(s, bufMsg, BUFSIZE, 0);
-        printf("buff: %s\n", bufMsg);
         if (count == 0)
         {
             break;
         }
-        dataReceived += count;
         puts(bufMsg);
     }
     close(s);

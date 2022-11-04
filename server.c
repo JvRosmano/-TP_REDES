@@ -413,31 +413,29 @@ int main(int argc, char **argv)
     {
         checkError("Listen");
     }
-
     char addrstr[BUFSIZE];
     addrtostr(addr, addrstr, BUFSIZE);
     printf("bound to %s, waiting connection\n", addrstr);
-    struct sockaddr_storage cstorage;
-    struct sockaddr *caddr = (struct sockaddr *)(&cstorage);
-    socklen_t caddrlen = sizeof(cstorage);
-
-    int cSock = accept(s, caddr, &caddrlen);
-    if (cSock == -1)
-    {
-        checkError("accept");
-    }
-
-    char caddrstr[BUFSIZE];
-    addrtostr(caddr, caddrstr, BUFSIZE);
-    printf("[log] connection from %s\n", caddrstr);
 
     while (1)
     {
+        struct sockaddr_storage cstorage;
+        struct sockaddr *caddr = (struct sockaddr *)(&cstorage);
+        socklen_t caddrlen = sizeof(cstorage);
+        int cSock = accept(s, caddr, &caddrlen);
+        if (cSock == -1)
+        {
+            checkError("accept");
+        }
 
+        char caddrstr[BUFSIZE];
+        addrtostr(caddr, caddrstr, BUFSIZE);
+        printf("[log] connection from %s\n", caddrstr);
         char buf[BUFSIZE];
         memset(buf, 0, BUFSIZE);
         memset(mensagem, 0, 50);
         size_t count = recv(cSock, buf, BUFSIZE, 0);
+
         char *params = strtok(buf, " ");
         if (strstr(params, INS_REQ))
         {
@@ -467,13 +465,22 @@ int main(int argc, char **argv)
                 }
             }
         }
+        else if (strstr(buf, KILL))
+        {
+            break;
+        }
+        else
+        {
+            strcpy(mensagem, "kill");
+        }
         sprintf(buf, "%s", mensagem);
         count = send(cSock, buf, strlen(buf) + 1, 0);
         if (count != strlen(buf) + 1)
         {
             checkError("send");
         }
+        close(cSock);
     }
-    close(cSock);
+
     exit(EXIT_SUCCESS);
 }

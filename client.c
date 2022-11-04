@@ -31,26 +31,27 @@ int main(int argc, char **argv)
     {
         usage(argc, argv);
     }
-    // Cria o socket
-    int s = socket(storage.ss_family, SOCK_STREAM, 0);
-    if (s == -1)
-    {
-        checkError("Erro na criação do socket");
-    }
-    struct sockaddr *addr = (struct sockaddr *)(&storage);
-    // Faz a conexão
-    if (0 != connect(s, addr, sizeof(storage)))
-    {
-        printf("Erro na conexão\n");
-    }
-
-    // Buffer para armazenar as mensagens e imprimi-las
-    char addrstr[BUFSIZE];
-    addrtostr(addr, addrstr, BUFSIZE);
-
-    printf("connected to %s\n", addrstr);
+    int s;
     while (1)
     {
+        // Cria o socket
+        s = socket(storage.ss_family, SOCK_STREAM, 0);
+        if (s == -1)
+        {
+            checkError("Erro na criação do socket");
+        }
+        struct sockaddr *addr = (struct sockaddr *)(&storage);
+        // Faz a conexão
+        if (0 != connect(s, addr, sizeof(storage)))
+        {
+            printf("Erro na conexão\n");
+        }
+
+        // Buffer para armazenar as mensagens e imprimi-las
+        char addrstr[BUFSIZE];
+        addrtostr(addr, addrstr, BUFSIZE);
+
+        printf("connected to %s\n", addrstr);
         // Buffer para armazenar o dado
         char bufMsg[BUFSIZE];
         memset(bufMsg, 0, BUFSIZE);
@@ -70,7 +71,7 @@ int main(int argc, char **argv)
         memset(bufMsg, 0, BUFSIZE);
         // Receber os dados
         count = recv(s, bufMsg, BUFSIZE, 0);
-        if (count == 0)
+        if (strstr(bufMsg, "kill") || count == 0)
         {
             break;
         }

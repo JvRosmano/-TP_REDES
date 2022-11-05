@@ -440,10 +440,8 @@ int main(int argc, char **argv)
         // char caddrstr[BUFSIZE];
         // addrtostr(caddr, caddrstr, BUFSIZE);
         // printf("[log] connection from %s\n", caddrstr);
-        char buf[BUFSIZE];
         // Reseta o buffer das mensagens de requisição
         memset(mensagemReq, 0, 500);
-        memset(buf, 0, BUFSIZE);
         // Recebe os dados em mensagemReq
         size_t count = recv(cSock, mensagemReq, 500, 0);
         // Vai lidar com a mensagem recebida

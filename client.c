@@ -10,6 +10,8 @@
 #include <arpa/inet.h>
 
 #define BUFSIZE 1024
+// Strings que serão responsáveis por conter as mensagens de requisição e resposta
+// Possuem tamanho máximo de 500 bytes como especificado no TP que deveria ser o limite
 char mensagemReq[500];
 char mensagemRes[500];
 
@@ -20,22 +22,24 @@ void usage(int argc, char **argv)
     exit(EXIT_FAILURE);
 }
 
+// Função que será chamada para montar a mensagem de requisão quando houver install
 void addDevice(char *params)
 {
     strcpy(mensagemReq, "INS_REQ ");
     // Vai obter o local id da mensagem
     params = strtok(NULL, " ");
     int dispositivoId = atoi(params);
+    // Separará a string
     params = strtok(NULL, " ");
     if (strstr(params, "in"))
     {
         params = strtok(NULL, " ");
         int localId = atoi(params);
-        // Vai colocar um zero para seguir a mensagem
         if (localId)
         {
             snprintf(mensagemReq + strlen(mensagemReq), 10, "%d ", localId);
         }
+        // Vai colocar um zero para seguir a mensagem se não houver lugar definido
         else
         {
             strcpy(mensagemReq + strlen(mensagemReq), "0 ");
@@ -44,6 +48,7 @@ void addDevice(char *params)
         {
             snprintf(mensagemReq + strlen(mensagemReq), 10, "%d ", dispositivoId);
         }
+        // Vai colocar um zero para seguir a mensagem se não houver dispositivo definido
         else
         {
             strcpy(mensagemReq + strlen(mensagemReq), "0 ");
@@ -55,6 +60,7 @@ void addDevice(char *params)
         {
             snprintf(mensagemReq + strlen(mensagemReq), 10, "%d ", param1);
         }
+        // Vai colocar um zero para seguir a mensagem se não houver o primeiro parâmetro definido
         else
         {
             strcpy(mensagemReq + strlen(mensagemReq), "0 ");
@@ -78,6 +84,7 @@ void addDevice(char *params)
                 snprintf(mensagemReq + strlen(mensagemReq), 10, "%d ", localId);
             }
         }
+        // Vai colocar um zero para seguir a mensagem se não houver o segundo parâmetro definido
         else
         {
             snprintf(mensagemReq + strlen(mensagemReq), 10, "%d ", localId);
@@ -85,9 +92,11 @@ void addDevice(char *params)
     }
 }
 
+// Função que será chamada para montar a mensagem de requisição de remove
 void removeDevice(char *params)
 {
     strcpy(mensagemReq, "REM_REQ ");
+    // Irá quebrando a string que recebe como parâmetro em tokens
     // Vai obter o local id da mensagem
     params = strtok(NULL, " ");
     int dispositivoId = atoi(params);
@@ -97,11 +106,11 @@ void removeDevice(char *params)
     {
         params = strtok(NULL, " ");
         int localId = atoi(params);
-        // Vai colocar um zero para seguir a mensagem
         if (localId)
         {
             snprintf(mensagemReq + strlen(mensagemReq), 10, "%d ", localId);
         }
+        // Vai colocar um zero para seguir a mensagem se não houver local Id
         else
         {
             strcpy(mensagemReq + strlen(mensagemReq), "0 ");
@@ -110,6 +119,7 @@ void removeDevice(char *params)
         {
             snprintf(mensagemReq + strlen(mensagemReq), 10, "%d", dispositivoId);
         }
+        // Vai colocar um zero para seguir a mensagem se não houver dispositivo Id
         else
         {
             strcpy(mensagemReq + strlen(mensagemReq), "0");
@@ -117,8 +127,10 @@ void removeDevice(char *params)
     }
 }
 
+// Função que será chamado para montar a mensagem de requisição de change
 void changeDeviceState(char *params)
 {
+    // Quebrará a string recebida como parâmetro em tokens
     strcpy(mensagemReq, "CH_REQ ");
     // Vai obter o local id da mensagem
     params = strtok(NULL, " ");
@@ -129,11 +141,11 @@ void changeDeviceState(char *params)
     {
         params = strtok(NULL, " ");
         int localId = atoi(params);
-        // Vai colocar um zero para seguir a mensagem
         if (localId)
         {
             snprintf(mensagemReq + strlen(mensagemReq), 10, "%d ", localId);
         }
+        // Vai colocar um zero para seguir a mensagem caso não houver local Id
         else
         {
             strcpy(mensagemReq + strlen(mensagemReq), "0 ");
@@ -142,6 +154,7 @@ void changeDeviceState(char *params)
         {
             snprintf(mensagemReq + strlen(mensagemReq), 10, "%d ", dispositivoId);
         }
+        // Vai colocar um zero para seguir a mensagem caso não houver dispositivo Id
         else
         {
             strcpy(mensagemReq + strlen(mensagemReq), "0 ");
@@ -153,6 +166,7 @@ void changeDeviceState(char *params)
         {
             snprintf(mensagemReq + strlen(mensagemReq), 10, "%d ", param1);
         }
+        // Vai colocar um zero para seguir a mensagem caso não houver parâmetro 1
         else
         {
             strcpy(mensagemReq + strlen(mensagemReq), "0 ");
@@ -172,6 +186,7 @@ void changeDeviceState(char *params)
                 snprintf(mensagemReq + strlen(mensagemReq), 10, "%d ", param2);
             }
         }
+        // Vai colocar um zero para seguir a mensagem caso não houver parâmetro 2
         else
         {
             strcpy(mensagemReq + strlen(mensagemReq), "0");
@@ -179,8 +194,10 @@ void changeDeviceState(char *params)
     }
 }
 
+// Função que será chamada para montar mensagem de requisição do tipo show state X in Y
 void showDeviceState(char *params)
 {
+    // Vai quebrar a string em tokens
     strcpy(mensagemReq, "DEV_REQ ");
     // Vai obter o local id da mensagem
     int dispositivoId = atoi(params);
@@ -190,11 +207,11 @@ void showDeviceState(char *params)
     {
         params = strtok(NULL, " ");
         int localId = atoi(params);
-        // Vai colocar um zero para seguir a mensagem
         if (localId)
         {
             snprintf(mensagemReq + strlen(mensagemReq), 10, "%d ", localId);
         }
+        // Vai colocar um zero para seguir a mensagem caso não local Id
         else
         {
             strcpy(mensagemReq + strlen(mensagemReq), "0 ");
@@ -203,6 +220,7 @@ void showDeviceState(char *params)
         {
             snprintf(mensagemReq + strlen(mensagemReq), 10, "%d", dispositivoId);
         }
+        // Vai colocar um zero para seguir a mensagem caso não dispositivo Id
         else
         {
             strcpy(mensagemReq + strlen(mensagemReq), "0");
@@ -210,26 +228,31 @@ void showDeviceState(char *params)
     }
 }
 
+// Função que será chamada para montar mensagem de requisição do tipo show state in X
 void showLocalState(char *params)
 {
+    // Vai montar a string a partir da váriavel recebida como parâmetro
     params = strtok(NULL, " ");
     strcpy(mensagemReq, "LOC_REQ ");
-    // Vai obter o local id da mensagem
     int localId = atoi(params);
     if (localId)
     {
         snprintf(mensagemReq + strlen(mensagemReq), 10, "%d", localId);
     }
+    // Vai colocar um zero para seguir a mensagem caso não tenha local Id
     else
     {
         strcpy(mensagemReq + strlen(mensagemReq), "0");
     }
 }
 
+// Função que vai preencher o buffer de mensagem de requisição para mandar na comunicação
 void createMessage(char *buf)
 {
+    // Resetará o buffer da mensagem de requisição para cada requisição
     memset(mensagemReq, 0, 500);
     char *params = strtok(buf, " ");
+    // Irá analisar cada caso de comando do teclado e montará a mensagem de requisição adequada
     if (strstr(params, "install"))
     {
         addDevice(params);
@@ -268,14 +291,18 @@ void createMessage(char *buf)
     }
 }
 
+// Função que vai preencher o buffer de mensagem de resposta que receber na comunicação
 void receiveMessage(char *buf)
 {
+    // Reseta o buffer da mensagem de resposta
     memset(mensagemRes, 0, 500);
     char *params = strtok(buf, " ");
+    // Irá analisar cada caso da string recebida como parâmetro tokenizada
     if (strstr(params, "OK"))
     {
         params = strtok(NULL, " ");
         int codigo = atoi(params);
+        // Irá analisar o código recebido e colocar o respectivo texto para o cliente
         if (codigo == 1)
         {
             strcpy(mensagemRes, "successful installation");
@@ -293,6 +320,7 @@ void receiveMessage(char *buf)
     {
         params = strtok(NULL, " ");
         int codigo = atoi(params);
+        // Irá analisar o código recebido e colocar o respectivo texto para o cliente
         if (codigo == 1)
         {
             strcpy(mensagemRes, "device not installed");
@@ -312,6 +340,7 @@ void receiveMessage(char *buf)
     }
     else if (strstr(params, "DEV_RES"))
     {
+        // Irá analisar a resposta recebida e pegará os dados de local Id e dispositivo Id da mensagem de requisição
         params = strtok(NULL, " ");
         int param1 = atoi(params);
         params = strtok(NULL, " ");
@@ -323,6 +352,7 @@ void receiveMessage(char *buf)
             int localId = atoi(paramsReq);
             paramsReq = strtok(NULL, " ");
             int dispositivoId = atoi(paramsReq);
+            // Cada dispositivo tem os próprios campos, fará o devido caso para cada um
             if (dispositivoId == 1)
             {
                 snprintf(mensagemRes, 30, "device %d in %d: %d %.2f", dispositivoId, localId, param1, param2);
@@ -347,10 +377,12 @@ void receiveMessage(char *buf)
     }
     else if (strstr(params, "LOC_RES"))
     {
+        // Pega o local ID da mensagem de requisição
         char localId = mensagemReq[8];
         snprintf(mensagemRes, 16, "local %c: ", localId);
         for (int i = 0; i < 15; i++)
         {
+            // Irá preencher a segunda parte da string de acordo com as informações dos campos
             params = strtok(NULL, " ");
             if (!params)
             {
@@ -380,6 +412,7 @@ int main(int argc, char **argv)
         usage(argc, argv);
     }
 
+    // Vai instanciar a estrutura que pode receber tanto IPv4 e IPv6
     struct sockaddr_storage storage;
     if (0 != addrParse(argv[1], argv[2], &storage))
     {
@@ -398,7 +431,7 @@ int main(int argc, char **argv)
         // Faz a conexão
         if (0 != connect(s, addr, sizeof(storage)))
         {
-            printf("Erro na conexão\n");
+            checkError("Erro na conexão");
         }
 
         // Buffer para armazenar as mensagens e imprimi-las

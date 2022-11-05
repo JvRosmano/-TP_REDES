@@ -8,16 +8,12 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+// Variáveis que vão ser usadas em alguns locais
 #define BUFSIZE 1024
 #define NUM_DISPOSITIVOS 5
 #define NUM_LOCAIS 5
-#define INS_REQ "install"
-#define REM_REQ "remove"
-#define CH_REQ "change"
-#define DEV_REQ "show state"
-#define SHOW "show"
-#define KILL "kill"
 
+// Struct de dispositivos, contém todos os campos que podem ser instanciados, mas para cada um só instancia os devidos
 struct dispositivo
 {
     int id;
@@ -31,14 +27,15 @@ struct dispositivo
     float temperatura;
 };
 
+// Struct local, tem o Id e um apontador para uma estruturas de dispositivos
 struct local
 {
     int id;
     struct dispositivo *dispositivos;
 };
 
+// Definindo as váriaveis que vão ser usadas ao longo do programa
 struct local *locais;
-char mensagem[50];
 char mensagemReq[500];
 char mensagemRes[500];
 
@@ -49,10 +46,12 @@ void usage(int argc, char **argv)
     exit(EXIT_FAILURE);
 }
 
+// Função que vai ser responsável por tratar as mensagens de requisição que são recebidas pelo servidor
 void handleMessage(char *buf)
 {
     memset(mensagemRes, 0, 500);
     char *params = strtok(buf, " ");
+    // Irá analisar qual foi a mensagem recebida e devolver a mensagem de resposta correspondente
     if (strstr(params, "INS_REQ"))
     {
         // Vai obter o local id da mensagem
@@ -74,7 +73,9 @@ void handleMessage(char *buf)
                         params = strtok(NULL, " ");
                         if (params)
                         {
+                            // Marca como instalado
                             locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 1;
+                            // Verifica para cada tipo de dispositivo individualmente
                             if (dispositivoId == 1)
                             {
                                 float param2 = atof(params);
@@ -134,7 +135,9 @@ void handleMessage(char *buf)
                 // Checa se o objeto já está instalado
                 if (locais[localId - 1].dispositivos[dispositivoId - 1].instalado == 1)
                 {
+                    // Desmarca o indivíduo como instalado
                     locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 0;
+                    // Reseta os campos para cada dispositivo
                     if (dispositivoId == 1)
                     {
                         locais[localId - 1].dispositivos[dispositivoId - 1].ligado = 0;
@@ -198,7 +201,7 @@ void handleMessage(char *buf)
                         params = strtok(NULL, " ");
                         if (params)
                         {
-                            locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 1;
+                            // Irá atualizar os valores dependendo das entradas da mensagem
                             if (dispositivoId == 1)
                             {
                                 float param2 = atof(params);
@@ -263,6 +266,7 @@ void handleMessage(char *buf)
                 // Checa se o objeto já está instalado
                 if (locais[localId - 1].dispositivos[dispositivoId - 1].instalado == 1)
                 {
+                    // Irá preencher as informações dependendo de qual dispositivo é
                     if (dispositivoId == 1)
                     {
                         snprintf(mensagemRes + strlen(mensagemRes), 20, "%d %.2f", locais[localId - 1].dispositivos[dispositivoId - 1].ligado, locais[localId - 1].dispositivos[dispositivoId - 1].temperatura);
@@ -296,7 +300,7 @@ void handleMessage(char *buf)
         }
         else
         {
-            strcpy(mensagem, "ERROR 04");
+            strcpy(mensagemRes, "ERROR 04");
         }
     }
     else if (strstr(params, "LOC_REQ"))
@@ -311,6 +315,8 @@ void handleMessage(char *buf)
             // Checa se o objeto já está instalado
             for (int i = 0; i < NUM_DISPOSITIVOS; i++)
             {
+                // Irá percorrer todos dispositivos e ver qual dos dispositivos do local está instalado
+                // Se estiver instalado, adiciona os campos correspondentes a mensagem de resposta
                 if (locais[localId - 1].dispositivos[i].instalado == 1)
                 {
                     if (i == 0)
@@ -352,17 +358,21 @@ void handleMessage(char *buf)
     }
     else if (strstr(params, "UNKNOWN_REQ"))
     {
+        // Se vier um comando desconhecido, irá retornar uma resposta específica indicando o para o cliente encerrar sua execução
         strcpy(mensagemRes, "UNKNOWN_RES");
     }
     else if (strstr(params, "KILL_REQ"))
     {
+        // Se vier um comando kill, irá retornar uma resposta específica indicando para encerrar tanto cliente quanto servidor
         strcpy(mensagemRes, "KILL_RES");
     }
 }
 
 int main(int argc, char **argv)
 {
+    // Irá alocar memória para o número de locais
     locais = (struct local *)calloc(NUM_LOCAIS, sizeof(struct local));
+    // Fará um laço preenchendo os valores do id dos locais e alocando memória para o número de locais neles
     for (int i = 0; i < NUM_LOCAIS; i++)
     {
         locais[i].id = i + 1;
@@ -378,6 +388,7 @@ int main(int argc, char **argv)
         usage(argc, argv);
     }
 
+    // Vai criar a estrutura para receber as informações de qual protocolo será utilizado no servidor
     struct sockaddr_storage storage;
     if (0 != server_sockaddr_init(argv[1], argv[2], &storage))
     {
@@ -398,12 +409,13 @@ int main(int argc, char **argv)
         checkError("setsockopt");
     }
 
+    // Servidor vai dar o bind no endereço informado
     struct sockaddr *addr = (struct sockaddr *)(&storage);
     if (0 != bind(s, addr, sizeof(storage)))
     {
         checkError("Bind");
     }
-
+    // Servidor vai ficar escutando clientes que podem se conectar a ele
     if (0 != listen(s, 10))
     {
         checkError("Listen");
@@ -414,9 +426,11 @@ int main(int argc, char **argv)
 
     while (1)
     {
+        // Vai definir a estrutra que vai receber as informações do cliente na conexão
         struct sockaddr_storage cstorage;
         struct sockaddr *caddr = (struct sockaddr *)(&cstorage);
         socklen_t caddrlen = sizeof(cstorage);
+        // Vai aceitar a conexão do cliente
         int cSock = accept(s, caddr, &caddrlen);
         if (cSock == -1)
         {
@@ -427,17 +441,22 @@ int main(int argc, char **argv)
         // addrtostr(caddr, caddrstr, BUFSIZE);
         // printf("[log] connection from %s\n", caddrstr);
         char buf[BUFSIZE];
+        // Reseta o buffer das mensagens de requisição
         memset(mensagemReq, 0, 500);
         memset(buf, 0, BUFSIZE);
-        memset(mensagem, 0, 50);
+        // Recebe os dados em mensagemReq
         size_t count = recv(cSock, mensagemReq, 500, 0);
+        // Vai lidar com a mensagem recebida
         handleMessage(mensagemReq);
+        // Irá enviar a resposta de volta para o cliente
         count = send(cSock, mensagemRes, strlen(mensagemRes) + 1, 0);
         if (count != strlen(mensagemRes) + 1)
         {
             checkError("send");
         }
+        // Fecha o socket
         close(cSock);
+        // Se a mensagem for de KILL, sai do loop e encerra
         if (strstr(mensagemRes, "KILL_RES"))
         {
             break;

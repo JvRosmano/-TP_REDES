@@ -41,7 +41,7 @@ int addrParse(const char *addrstr, const char *portstr, struct sockaddr_storage 
     }
     // Vai checar se é o IPv6, se não, houve erro
     struct in6_addr inaddr6;
-    if (inet_pton(AF_INET6, addrstr, &inaddr4))
+    if (inet_pton(AF_INET6, addrstr, &inaddr6))
     {
         struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)storage;
         addr6->sin6_family = AF_INET6;

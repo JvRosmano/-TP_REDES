@@ -350,6 +350,14 @@ void handleMessage(char *buf)
             strcpy(mensagemRes, "ERROR 04");
         }
     }
+    else if (strstr(params, "UNKNOWN_REQ"))
+    {
+        strcpy(mensagemRes, "UNKNOWN_RES");
+    }
+    else if (strstr(params, "KILL_REQ"))
+    {
+        strcpy(mensagemRes, "KILL_RES");
+    }
 }
 
 int main(int argc, char **argv)
@@ -400,9 +408,9 @@ int main(int argc, char **argv)
     {
         checkError("Listen");
     }
-    char addrstr[BUFSIZE];
-    addrtostr(addr, addrstr, BUFSIZE);
-    printf("bound to %s, waiting connection\n", addrstr);
+    // char addrstr[BUFSIZE];
+    // addrtostr(addr, addrstr, BUFSIZE);
+    // printf("bound to %s, waiting connection\n", addrstr);
 
     while (1)
     {
@@ -415,9 +423,9 @@ int main(int argc, char **argv)
             checkError("accept");
         }
 
-        char caddrstr[BUFSIZE];
-        addrtostr(caddr, caddrstr, BUFSIZE);
-        printf("[log] connection from %s\n", caddrstr);
+        // char caddrstr[BUFSIZE];
+        // addrtostr(caddr, caddrstr, BUFSIZE);
+        // printf("[log] connection from %s\n", caddrstr);
         char buf[BUFSIZE];
         memset(mensagemReq, 0, 500);
         memset(buf, 0, BUFSIZE);
@@ -430,6 +438,10 @@ int main(int argc, char **argv)
             checkError("send");
         }
         close(cSock);
+        if (strstr(mensagemRes, "KILL_RES"))
+        {
+            break;
+        }
     }
 
     exit(EXIT_SUCCESS);

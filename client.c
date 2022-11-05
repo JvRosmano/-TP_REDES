@@ -264,7 +264,111 @@ void createMessage(char *buf)
     }
     else
     {
-        strcpy(mensagemReq, "INVALID_REQ");
+        strcpy(mensagemReq, "UNKNOWN_REQ");
+    }
+}
+
+void receiveMessage(char *buf)
+{
+    memset(mensagemRes, 0, 500);
+    char *params = strtok(buf, " ");
+    if (strstr(params, "OK"))
+    {
+        params = strtok(NULL, " ");
+        int codigo = atoi(params);
+        if (codigo == 1)
+        {
+            strcpy(mensagemRes, "successful installation");
+        }
+        else if (codigo == 2)
+        {
+            strcpy(mensagemRes, "successful removal");
+        }
+        else if (codigo == 3)
+        {
+            strcpy(mensagemRes, "successful change");
+        }
+    }
+    else if (strstr(params, "ERROR"))
+    {
+        params = strtok(NULL, " ");
+        int codigo = atoi(params);
+        if (codigo == 1)
+        {
+            strcpy(mensagemRes, "device not installed");
+        }
+        else if (codigo == 2)
+        {
+            strcpy(mensagemRes, "no devices");
+        }
+        else if (codigo == 3)
+        {
+            strcpy(mensagemRes, "invalid device");
+        }
+        else if (codigo == 4)
+        {
+            strcpy(mensagemRes, "invalid local");
+        }
+    }
+    else if (strstr(params, "DEV_RES"))
+    {
+        params = strtok(NULL, " ");
+        int param1 = atoi(params);
+        params = strtok(NULL, " ");
+        float param2 = atof(params);
+        char *paramsReq = strtok(mensagemReq, " ");
+        if (strstr(paramsReq, "DEV_REQ"))
+        {
+            paramsReq = strtok(NULL, " ");
+            int localId = atoi(paramsReq);
+            paramsReq = strtok(NULL, " ");
+            int dispositivoId = atoi(paramsReq);
+            if (dispositivoId == 1)
+            {
+                snprintf(mensagemRes, 30, "device %d in %d: %d %.2f", dispositivoId, localId, param1, param2);
+            }
+            else if (dispositivoId == 2)
+            {
+                snprintf(mensagemRes, 30, "device %d in %d: %d %.2f", dispositivoId, localId, param1, param2);
+            }
+            else if (dispositivoId == 3)
+            {
+                snprintf(mensagemRes, 30, "device %d in %d: %d %d", dispositivoId, localId, param1, (int)param2);
+            }
+            else if (dispositivoId == 4)
+            {
+                snprintf(mensagemRes, 30, "device %d in %d: %d %d", dispositivoId, localId, param1, (int)param2);
+            }
+            else if (dispositivoId == 5)
+            {
+                snprintf(mensagemRes, 30, "device %d in %d: %d %.2f", dispositivoId, localId, param1, param2);
+            }
+        }
+    }
+    else if (strstr(params, "LOC_RES"))
+    {
+        char localId = mensagemReq[8];
+        snprintf(mensagemRes, 16, "local %c: ", localId);
+        for (int i = 0; i < 15; i++)
+        {
+            params = strtok(NULL, " ");
+            if (!params)
+            {
+                break;
+            }
+            if (i % 3 == 0)
+            {
+                snprintf(mensagemRes + strlen(mensagemRes), 16, "%s (", params);
+            }
+            else if ((i - 1) % 3 == 0)
+            {
+                snprintf(mensagemRes + strlen(mensagemRes), 16, "%s ", params);
+            }
+            else if ((i - 2) % 3 == 0)
+            {
+                snprintf(mensagemRes + strlen(mensagemRes), 16, "%s) ", params);
+            }
+        }
     }
 }
 
@@ -298,14 +402,14 @@ int main(int argc, char **argv)
         }
 
         // Buffer para armazenar as mensagens e imprimi-las
-        char addrstr[BUFSIZE];
-        addrtostr(addr, addrstr, BUFSIZE);
+        // char addrstr[BUFSIZE];
+        // addrtostr(addr, addrstr, BUFSIZE);
 
-        printf("connected to %s\n", addrstr);
+        // printf("connected to %s\n", addrstr);
         // Buffer para armazenar o dado
         char conteudoMsg[BUFSIZE];
         memset(conteudoMsg, 0, BUFSIZE);
-        printf("<mensagem> ");
+        // printf("<mensagem> ");
         fgets(conteudoMsg, BUFSIZE - 1, stdin);
         createMessage(conteudoMsg);
         // Váriavel count que vai receber o número de bytes transmitidos
@@ -315,13 +419,14 @@ int main(int argc, char **argv)
             checkError("Número de bytes não batem");
         }
 
-        memset(mensagemRes, 0, BUFSIZE);
+        char conteudoResp[BUFSIZE];
         // Receber os dados
-        count = recv(s, mensagemRes, BUFSIZE, 0);
-        // if (strstr(mensagemRes, "kill") || count == 0)
-        // {
-        //     break;
-        // }
+        count = recv(s, conteudoResp, BUFSIZE, 0);
+        receiveMessage(conteudoResp);
+        if (strstr(conteudoResp, "UNKNOWN_RES") || strstr(conteudoResp, "KILL_RES") || count == 0)
+        {
+            break;
+        }
         puts(mensagemRes);
     }
     close(s);

@@ -39,6 +39,8 @@ struct local
 
 struct local *locais;
 char mensagem[50];
+char mensagemReq[500];
+char mensagemRes[500];
 
 void usage(int argc, char **argv)
 {
@@ -47,321 +49,306 @@ void usage(int argc, char **argv)
     exit(EXIT_FAILURE);
 }
 
-void addDevice(char *params)
+void handleMessage(char *buf)
 {
-    // Vai obter o local id da mensagem
-    params = strtok(NULL, " ");
-    int dispositivoId = atoi(params);
-    if (dispositivoId == 1 || dispositivoId == 2 || dispositivoId == 3 || dispositivoId == 4 || dispositivoId == 5)
+    memset(mensagemRes, 0, 500);
+    char *params = strtok(buf, " ");
+    if (strstr(params, "INS_REQ"))
     {
+        // Vai obter o local id da mensagem
         params = strtok(NULL, " ");
-        if (strstr(params, "in"))
+        int localId = atoi(params);
+        if (localId == 1 || localId == 2 || localId == 3 || localId == 4 || localId == 5)
         {
             params = strtok(NULL, " ");
-            int localId = atoi(params);
-            if (localId == 1 || localId == 2 || localId == 3 || localId == 4 || localId == 5)
+            int dispositivoId = atoi(params);
+            if (dispositivoId == 1 || dispositivoId == 2 || dispositivoId == 3 || dispositivoId == 4 || dispositivoId == 5)
             {
                 // Checa se o objeto já está instalado
                 if (locais[localId - 1].dispositivos[dispositivoId - 1].instalado == 0)
                 {
                     params = strtok(NULL, " ");
-                    int param1 = atoi(params);
-                    if (param1)
+                    if (params)
                     {
+                        int param1 = atoi(params);
                         params = strtok(NULL, " ");
                         if (params)
                         {
+                            locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 1;
                             if (dispositivoId == 1)
                             {
                                 float param2 = atof(params);
                                 locais[localId - 1].dispositivos[dispositivoId - 1].ligado = param1;
                                 locais[localId - 1].dispositivos[dispositivoId - 1].temperatura = param2;
-                                locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 1;
                             }
                             else if (dispositivoId == 2)
                             {
                                 float param2 = atof(params);
                                 locais[localId - 1].dispositivos[dispositivoId - 1].ligado = param1;
                                 locais[localId - 1].dispositivos[dispositivoId - 1].canal = param2;
-                                locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 1;
                             }
                             else if (dispositivoId == 3)
                             {
                                 int param2 = atoi(params);
                                 locais[localId - 1].dispositivos[dispositivoId - 1].ligado = param1;
                                 locais[localId - 1].dispositivos[dispositivoId - 1].localId = param2;
-                                locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 1;
                             }
                             else if (dispositivoId == 4)
                             {
                                 int param2 = atoi(params);
                                 locais[localId - 1].dispositivos[dispositivoId - 1].aberto = param1;
                                 locais[localId - 1].dispositivos[dispositivoId - 1].trancado = param2;
-                                locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 1;
                             }
                             else if (dispositivoId == 5)
                             {
                                 float param2 = atof(params);
                                 locais[localId - 1].dispositivos[dispositivoId - 1].ligado = param1;
                                 locais[localId - 1].dispositivos[dispositivoId - 1].angulo = param2;
-                                locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 1;
                             }
-                            strcpy(mensagem, "succesfull instalation");
+                            strcpy(mensagemRes, "OK 01");
                         }
                     }
                 }
             }
             else
             {
-                strcpy(mensagem, "invalid local");
+                strcpy(mensagemRes, "ERROR 03");
             }
         }
+        else
+        {
+            strcpy(mensagemRes, "ERROR 04");
+        }
     }
-    else
+    else if (strstr(params, "REM_REQ"))
     {
-        strcpy(mensagem, "invalid device");
-    }
-}
-
-void removeDevice(char *params)
-{
-    // Vai obter o local id da mensagem
-    params = strtok(NULL, " ");
-    int dispositivoId = atoi(params);
-    if (dispositivoId == 1 || dispositivoId == 2 || dispositivoId == 3 || dispositivoId == 4 || dispositivoId == 5)
-    {
+        // Vai obter o local id da mensagem
         params = strtok(NULL, " ");
-        if (strstr(params, "in"))
+        int localId = atoi(params);
+        if (localId == 1 || localId == 2 || localId == 3 || localId == 4 || localId == 5)
         {
             params = strtok(NULL, " ");
-            int localId = atoi(params);
-            if (localId == 1 || localId == 2 || localId == 3 || localId == 4 || localId == 5)
+            int dispositivoId = atoi(params);
+            if (dispositivoId == 1 || dispositivoId == 2 || dispositivoId == 3 || dispositivoId == 4 || dispositivoId == 5)
             {
                 // Checa se o objeto já está instalado
                 if (locais[localId - 1].dispositivos[dispositivoId - 1].instalado == 1)
                 {
+                    locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 0;
                     if (dispositivoId == 1)
                     {
                         locais[localId - 1].dispositivos[dispositivoId - 1].ligado = 0;
                         locais[localId - 1].dispositivos[dispositivoId - 1].temperatura = 0;
-                        locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 0;
                     }
                     else if (dispositivoId == 2)
                     {
                         locais[localId - 1].dispositivos[dispositivoId - 1].ligado = 0;
                         locais[localId - 1].dispositivos[dispositivoId - 1].canal = 0;
-                        locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 0;
                     }
                     else if (dispositivoId == 3)
                     {
                         locais[localId - 1].dispositivos[dispositivoId - 1].ligado = 0;
                         locais[localId - 1].dispositivos[dispositivoId - 1].localId = 0;
-                        locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 0;
                     }
                     else if (dispositivoId == 4)
                     {
                         locais[localId - 1].dispositivos[dispositivoId - 1].aberto = 0;
                         locais[localId - 1].dispositivos[dispositivoId - 1].trancado = 0;
-                        locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 0;
                     }
                     else if (dispositivoId == 5)
                     {
                         locais[localId - 1].dispositivos[dispositivoId - 1].ligado = 0;
                         locais[localId - 1].dispositivos[dispositivoId - 1].angulo = 0;
-                        locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 0;
                     }
-                    strcpy(mensagem, "successful removal");
+                    strcpy(mensagemRes, "OK 02");
                 }
                 else
                 {
-                    strcpy(mensagem, "device not installed");
+                    strcpy(mensagemRes, "ERROR 01");
                 }
             }
             else
             {
-                strcpy(mensagem, "invalid local");
+                strcpy(mensagemRes, "ERROR 04");
             }
         }
+        else
+        {
+            strcpy(mensagemRes, "ERROR 03");
+        }
     }
-    else
+    else if (strstr(params, "CH_REQ"))
     {
-        strcpy(mensagem, "invalid device");
-    }
-}
-
-void changeDeviceState(char *params)
-{
-    // Vai obter o local id da mensagem
-    params = strtok(NULL, " ");
-    int dispositivoId = atoi(params);
-    if (dispositivoId == 1 || dispositivoId == 2 || dispositivoId == 3 || dispositivoId == 4 || dispositivoId == 5)
-    {
+        // Vai obter o local id da mensagem
         params = strtok(NULL, " ");
-        if (strstr(params, "in"))
+        int localId = atoi(params);
+        if (localId == 1 || localId == 2 || localId == 3 || localId == 4 || localId == 5)
         {
             params = strtok(NULL, " ");
-            int localId = atoi(params);
-            if (localId == 1 || localId == 2 || localId == 3 || localId == 4 || localId == 5)
+            int dispositivoId = atoi(params);
+            if (dispositivoId == 1 || dispositivoId == 2 || dispositivoId == 3 || dispositivoId == 4 || dispositivoId == 5)
             {
                 // Checa se o objeto já está instalado
                 if (locais[localId - 1].dispositivos[dispositivoId - 1].instalado == 1)
                 {
                     params = strtok(NULL, " ");
-                    int param1 = atoi(params);
-                    if (param1)
+                    if (params)
                     {
+                        int param1 = atoi(params);
                         params = strtok(NULL, " ");
                         if (params)
                         {
+                            locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 1;
                             if (dispositivoId == 1)
                             {
                                 float param2 = atof(params);
                                 locais[localId - 1].dispositivos[dispositivoId - 1].ligado = param1;
                                 locais[localId - 1].dispositivos[dispositivoId - 1].temperatura = param2;
-                                locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 1;
                             }
                             else if (dispositivoId == 2)
                             {
                                 float param2 = atof(params);
                                 locais[localId - 1].dispositivos[dispositivoId - 1].ligado = param1;
                                 locais[localId - 1].dispositivos[dispositivoId - 1].canal = param2;
-                                locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 1;
                             }
                             else if (dispositivoId == 3)
                             {
                                 int param2 = atoi(params);
                                 locais[localId - 1].dispositivos[dispositivoId - 1].ligado = param1;
                                 locais[localId - 1].dispositivos[dispositivoId - 1].localId = param2;
-                                locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 1;
                             }
                             else if (dispositivoId == 4)
                             {
                                 int param2 = atoi(params);
                                 locais[localId - 1].dispositivos[dispositivoId - 1].aberto = param1;
                                 locais[localId - 1].dispositivos[dispositivoId - 1].trancado = param2;
-                                locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 1;
                             }
                             else if (dispositivoId == 5)
                             {
                                 float param2 = atof(params);
                                 locais[localId - 1].dispositivos[dispositivoId - 1].ligado = param1;
                                 locais[localId - 1].dispositivos[dispositivoId - 1].angulo = param2;
-                                locais[localId - 1].dispositivos[dispositivoId - 1].instalado = 1;
                             }
-                            strcpy(mensagem, "successful change");
+                            strcpy(mensagemRes, "OK 03");
                         }
                     }
                 }
                 else
                 {
-                    strcpy(mensagem, "device not installed");
+                    strcpy(mensagemRes, "ERROR 01");
                 }
             }
             else
             {
-                strcpy(mensagem, "invalid local");
+                strcpy(mensagemRes, "ERROR 03");
             }
         }
+        else
+        {
+            strcpy(mensagemRes, "ERROR 04");
+        }
     }
-    else
+    else if (strstr(params, "DEV_REQ"))
     {
-        strcpy(mensagem, "invalid device");
-    }
-}
-
-void showDeviceState(char *params)
-{
-    // Vai obter o local id da mensagem
-    int dispositivoId = atoi(params);
-    if (dispositivoId == 1 || dispositivoId == 2 || dispositivoId == 3 || dispositivoId == 4 || dispositivoId == 5)
-    {
+        strcpy(mensagemRes, "DEV_RES ");
         params = strtok(NULL, " ");
-        if (strstr(params, "in"))
+        // Vai obter o local id da mensagem
+        int localId = atoi(params);
+        if (localId == 1 || localId == 2 || localId == 3 || localId == 4 || localId == 5)
         {
             params = strtok(NULL, " ");
-            int localId = atoi(params);
-            if (localId == 1 || localId == 2 || localId == 3 || localId == 4 || localId == 5)
+            int dispositivoId = atoi(params);
+            if (dispositivoId == 1 || dispositivoId == 2 || dispositivoId == 3 || dispositivoId == 4 || dispositivoId == 5)
             {
                 // Checa se o objeto já está instalado
                 if (locais[localId - 1].dispositivos[dispositivoId - 1].instalado == 1)
                 {
                     if (dispositivoId == 1)
                     {
-                        snprintf(mensagem, 30, "device %d in %d: %d %f", dispositivoId, localId, locais[localId - 1].dispositivos[dispositivoId - 1].ligado, locais[localId - 1].dispositivos[dispositivoId - 1].temperatura);
+                        snprintf(mensagemRes + strlen(mensagemRes), 20, "%d %.2f", locais[localId - 1].dispositivos[dispositivoId - 1].ligado, locais[localId - 1].dispositivos[dispositivoId - 1].temperatura);
                     }
                     else if (dispositivoId == 2)
                     {
-                        snprintf(mensagem, 30, "device %d in %d: %d %f", dispositivoId, localId, locais[localId - 1].dispositivos[dispositivoId - 1].ligado, locais[localId - 1].dispositivos[dispositivoId - 1].canal);
+                        snprintf(mensagemRes + strlen(mensagemRes), 20, "%d %.2f", locais[localId - 1].dispositivos[dispositivoId - 1].ligado, locais[localId - 1].dispositivos[dispositivoId - 1].canal);
                     }
                     else if (dispositivoId == 3)
                     {
-                        snprintf(mensagem, 30, "device %d in %d: %d %d", dispositivoId, localId, locais[localId - 1].dispositivos[dispositivoId - 1].ligado, locais[localId - 1].dispositivos[dispositivoId - 1].localId);
+                        snprintf(mensagemRes + strlen(mensagemRes), 20, "%d %d", locais[localId - 1].dispositivos[dispositivoId - 1].ligado, locais[localId - 1].dispositivos[dispositivoId - 1].localId);
                     }
                     else if (dispositivoId == 4)
                     {
-                        snprintf(mensagem, 30, "device %d in %d: %d %d", dispositivoId, localId, locais[localId - 1].dispositivos[dispositivoId - 1].aberto, locais[localId - 1].dispositivos[dispositivoId - 1].trancado);
+                        snprintf(mensagemRes + strlen(mensagemRes), 20, "%d %d", locais[localId - 1].dispositivos[dispositivoId - 1].aberto, locais[localId - 1].dispositivos[dispositivoId - 1].trancado);
                     }
                     else if (dispositivoId == 5)
                     {
-                        snprintf(mensagem, 30, "device %d in %d: %d %f", dispositivoId, localId, locais[localId - 1].dispositivos[dispositivoId - 1].ligado, locais[localId - 1].dispositivos[dispositivoId - 1].angulo);
+                        snprintf(mensagemRes + strlen(mensagemRes), 20, "%d %.2f", locais[localId - 1].dispositivos[dispositivoId - 1].ligado, locais[localId - 1].dispositivos[dispositivoId - 1].angulo);
                     }
                 }
                 else
                 {
-                    strcpy(mensagem, "device not installed");
+                    strcpy(mensagemRes, "ERROR 01");
                 }
             }
             else
             {
-                strcpy(mensagem, "invalid local");
+                strcpy(mensagemRes, "ERROR 03");
             }
         }
-    }
-    else
-    {
-        strcpy(mensagem, "invalid device");
-    }
-}
-
-void showLocalState(char *params)
-{
-    // Vai obter o local id da mensagem
-    params = strtok(NULL, " ");
-    int localId = atoi(params);
-    if (localId == 1 || localId == 2 || localId == 3 || localId == 4 || localId == 5)
-    {
-        snprintf(mensagem, 12, "local %d: ", localId);
-        // Checa se o objeto já está instalado
-        for (int i = 0; i < NUM_DISPOSITIVOS; i++)
+        else
         {
-            if (locais[localId - 1].dispositivos[i].instalado == 1)
-            {
-                if (i == 0)
-                {
-                    snprintf(mensagem + strlen(mensagem), 16, "%d (%d %.2f) ", i + 1, locais[localId - 1].dispositivos[i].ligado, locais[localId - 1].dispositivos[i].temperatura);
-                }
-                else if (i == 1)
-                {
-                    snprintf(mensagem + strlen(mensagem), 16, "%d (%d %.2f) ", i + 1, locais[localId - 1].dispositivos[i].ligado, locais[localId - 1].dispositivos[i].canal);
-                }
-                else if (i == 2)
-                {
-                    snprintf(mensagem + strlen(mensagem), 16, "%d (%d %d) ", i + 1, locais[localId - 1].dispositivos[i].ligado, locais[localId - 1].dispositivos[i].localId);
-                }
-                else if (i == 3)
-                {
-                    snprintf(mensagem + strlen(mensagem), 16, "%d (%d %d) ", i + 1, locais[localId - 1].dispositivos[i].aberto, locais[localId - 1].dispositivos[i].trancado);
-                }
-                else if (i == 4)
-                {
-                    snprintf(mensagem + strlen(mensagem), 16, "%d (%d %.2f) ", i + 1, locais[localId - 1].dispositivos[i].ligado, locais[localId - 1].dispositivos[i].angulo);
-                }
-            }
+            strcpy(mensagem, "ERROR 04");
         }
     }
-    else
+    else if (strstr(params, "LOC_REQ"))
     {
-        strcpy(mensagem, "invalid local");
+        strcpy(mensagemRes, "LOC_RES ");
+        params = strtok(NULL, " ");
+        // Vai obter o local id da mensagem
+        int localId = atoi(params);
+        if (localId == 1 || localId == 2 || localId == 3 || localId == 4 || localId == 5)
+        {
+            int dispInstalados = 0;
+            // Checa se o objeto já está instalado
+            for (int i = 0; i < NUM_DISPOSITIVOS; i++)
+            {
+                if (locais[localId - 1].dispositivos[i].instalado == 1)
+                {
+                    if (i == 0)
+                    {
+                        snprintf(mensagemRes + strlen(mensagemRes), 16, "%d %d %.2f ", i + 1, locais[localId - 1].dispositivos[i].ligado, locais[localId - 1].dispositivos[i].temperatura);
+                        dispInstalados++;
+                    }
+                    else if (i == 1)
+                    {
+                        snprintf(mensagemRes + strlen(mensagemRes), 16, "%d %d %.2f ", i + 1, locais[localId - 1].dispositivos[i].ligado, locais[localId - 1].dispositivos[i].canal);
+                        dispInstalados++;
+                    }
+                    else if (i == 2)
+                    {
+                        snprintf(mensagemRes + strlen(mensagemRes), 16, "%d %d %d ", i + 1, locais[localId - 1].dispositivos[i].ligado, locais[localId - 1].dispositivos[i].localId);
+                        dispInstalados++;
+                    }
+                    else if (i == 3)
+                    {
+                        snprintf(mensagemRes + strlen(mensagemRes), 16, "%d %d %d ", i + 1, locais[localId - 1].dispositivos[i].aberto, locais[localId - 1].dispositivos[i].trancado);
+                        dispInstalados++;
+                    }
+                    else if (i == 4)
+                    {
+                        snprintf(mensagemRes + strlen(mensagemRes), 16, "%d %d %.2f ", i + 1, locais[localId - 1].dispositivos[i].ligado, locais[localId - 1].dispositivos[i].angulo);
+                        dispInstalados++;
+                    }
+                }
+            }
+            if (dispInstalados == 0)
+            {
+                strcpy(mensagemRes, "ERROR 02");
+            }
+        }
+        else
+        {
+            strcpy(mensagemRes, "ERROR 04");
+        }
     }
 }
 
@@ -432,50 +419,13 @@ int main(int argc, char **argv)
         addrtostr(caddr, caddrstr, BUFSIZE);
         printf("[log] connection from %s\n", caddrstr);
         char buf[BUFSIZE];
+        memset(mensagemReq, 0, 500);
         memset(buf, 0, BUFSIZE);
         memset(mensagem, 0, 50);
-        size_t count = recv(cSock, buf, BUFSIZE, 0);
-
-        char *params = strtok(buf, " ");
-        if (strstr(params, INS_REQ))
-        {
-            addDevice(params);
-        }
-        else if (strstr(params, REM_REQ))
-        {
-            removeDevice(params);
-        }
-        else if (strstr(params, CH_REQ))
-        {
-            changeDeviceState(params);
-        }
-        else if (strstr(params, SHOW))
-        {
-            params = strtok(NULL, " ");
-            if (strstr(params, "state"))
-            {
-                params = strtok(NULL, " ");
-                if (strstr(params, "in"))
-                {
-                    showLocalState(params);
-                }
-                else
-                {
-                    showDeviceState(params);
-                }
-            }
-        }
-        else if (strstr(buf, KILL))
-        {
-            break;
-        }
-        else
-        {
-            strcpy(mensagem, "kill");
-        }
-        sprintf(buf, "%s", mensagem);
-        count = send(cSock, buf, strlen(buf) + 1, 0);
-        if (count != strlen(buf) + 1)
+        size_t count = recv(cSock, mensagemReq, 500, 0);
+        handleMessage(mensagemReq);
+        count = send(cSock, mensagemRes, strlen(mensagemRes) + 1, 0);
+        if (count != strlen(mensagemRes) + 1)
         {
             checkError("send");
         }
